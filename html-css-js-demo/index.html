@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Todos - タスク管理</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- オーバーレイ（モバイル用サイドバー背景） -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- 左サイドバー -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <button class="hamburger-btn" id="hamburgerBtn" aria-label="メニュー">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <h1 class="sidebar-title">tasks</h1>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item">
+                <span class="nav-icon">🏠</span>
+                Home
+            </a>
+            <a href="#" class="nav-item active">
+                <span class="nav-icon">☑️</span>
+                Todo
+            </a>
+            <a href="#" class="nav-item">
+                <span class="nav-icon">📅</span>
+                Reminder
+            </a>
+            <a href="#" class="nav-item">
+                <span class="nav-icon">✏️</span>
+                Notes
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="#" class="nav-item">
+                <span class="nav-icon">⚙️</span>
+                Settings
+            </a>
+        </div>
+    </aside>
+
+    <!-- メインコンテンツ -->
+    <main class="main-content">
+        <!-- ヘッダー -->
+        <header class="main-header">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="search" placeholder="Search" class="search-input">
+            </div>
+            <div class="header-right">
+                <div class="user-profile">
+                    <span class="user-name">Vishroy Seenarain</span>
+                    <span class="dropdown-icon">▼</span>
+                </div>
+                <div class="user-avatar">VS</div>
+                <div class="filter-select">
+                    <span class="filter-text">This week</span>
+                    <span class="dropdown-icon">▼</span>
+                </div>
+            </div>
+        </header>
+
+        <h2 class="page-title">My Todos</h2>
+
+        <!-- タスクセクション（3カラム） -->
+        <div class="tasks-container">
+            <!-- Ongoing（進行中） -->
+            <section class="task-column" data-status="ongoing">
+                <div class="column-header">
+                    <span class="indicator indicator-orange"></span>
+                    <h3 class="column-title">Ongoing</h3>
+                    <span class="task-count">5</span>
+                </div>
+                <div class="task-cards">
+                    <article class="task-card" data-id="1">
+                        <div class="card-left">
+                            <button class="checkbox unchecked" aria-label="完了"></button>
+                            <div class="card-content">
+                                <h4 class="card-title">Clean the turtle pond ASAP!!</h4>
+                                <p class="card-desc">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                                <div class="card-tags">
+                                    <span class="tag tag-red">urgent</span>
+                                    <span class="tag tag-blue">coding</span>
+                                    <span class="tag tag-orange">personal</span>
+                                    <span class="tag tag-green">health</span>
+                                    <span class="tag tag-dark-green">important</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="card-menu">⋮</button>
+                    </article>
+                    <article class="task-card" data-id="2">
+                        <div class="card-left">
+                            <button class="checkbox unchecked" aria-label="完了"></button>
+                            <div class="card-content">
+                                <h4 class="card-title">Development</h4>
+                                <p class="card-desc">Lorem ipsum dolor sit amet.</p>
+                                <div class="card-tags">
+                                    <span class="tag tag-blue">coding</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="card-menu">⋮</button>
+                    </article>
+                    <article class="task-card" data-id="3">
+                        <div class="card-left">
+                            <button class="checkbox unchecked" aria-label="完了"></button>
+                            <div class="card-content">
+                                <h4 class="card-title">Fetch-food</h4>
+                                <p class="card-desc">Lorem ipsum dolor sit amet.</p>
+                                <div class="card-tags">
+                                    <span class="tag tag-orange">personal</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="card-menu">⋮</button>
+                    </article>
+                    <article class="task-card" data-id="4">
+                        <div class="card-left">
+                            <button class="checkbox unchecked" aria-label="完了"></button>
+                            <div class="card-content">
+                                <h4 class="card-title">Designing</h4>
+                                <p class="card-desc">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                                <div class="card-tags">
+                                    <span class="tag tag-blue">coding</span>
+                                    <span class="tag tag-dark-green">important</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="card-menu">⋮</button>
+                    </article>
+                    <article class="task-card" data-id="5">
+                        <div class="card-left">
+                            <button class="checkbox unchecked" aria-label="完了"></button>
+                            <div class="card-content">
+                                <h4 class="card-title">Meeting</h4>
+                                <p class="card-desc">Lorem ipsum dolor sit amet.</p>
+                                <div class="card-tags">
+                                    <span class="tag tag-red">urgent</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="card-menu">⋮</button>
+                    </article>
+                </div>
+            </section>
+
+            <!-- Completed（完了済み） -->
+            <section class="task-column" data-status="completed">
+                <div class="column-header">
+                    <span class="indicator indicator-green"></span>
+                    <h3 class="column-title">Completed</h3>
+                    <span class="task-count">3</span>
+                </div>
+                <div class="task-cards">
+                    <article class="task-card completed" data-id="6">
+                        <div class="card-left">
+                            <button class="checkbox checked" aria-label="未完了に戻す">✓</button>
+                            <div class="card-content">
+                                <h4 class="card-title">Read documentation</h4>
+                                <p class="card-desc">Lorem ipsum dolor sit amet.</p>
+                                <div class="card-tags">
+                                    <span class="tag tag-blue">coding</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="card-menu">⋮</button>
+                    </article>
+                    <article class="task-card completed" data-id="7">
+                        <div class="card-left">
+                            <button class="checkbox checked" aria-label="未完了に戻す">✓</button>
+                            <div class="card-content">
+                                <h4 class="card-title">Review code</h4>
+                                <p class="card-desc">Lorem ipsum dolor sit amet.</p>
+                                <div class="card-tags">
+                                    <span class="tag tag-green">health</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="card-menu">⋮</button>
+                    </article>
+                    <article class="task-card completed" data-id="8">
+                        <div class="card-left">
+                            <button class="checkbox checked" aria-label="未完了に戻す">✓</button>
+                            <div class="card-content">
+                                <h4 class="card-title">Update project</h4>
+                                <p class="card-desc">Lorem ipsum dolor sit amet.</p>
+                                <div class="card-tags">
+                                    <span class="tag tag-dark-green">important</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="card-menu">⋮</button>
+                    </article>
+                </div>
+            </section>
+
+            <!-- Trashed（ゴミ箱） -->
+            <section class="task-column" data-status="trashed">
+                <div class="column-header">
+                    <span class="indicator indicator-red"></span>
+                    <h3 class="column-title">Trashed</h3>
+                    <span class="task-count">3</span>
+                </div>
+                <div class="task-cards">
+                    <article class="task-card trashed" data-id="9">
+                        <div class="card-left">
+                            <span class="trash-indicator"></span>
+                            <div class="card-content">
+                                <h4 class="card-title">Development</h4>
+                            </div>
+                        </div>
+                        <button class="card-menu">⋮</button>
+                    </article>
+                    <article class="task-card trashed" data-id="10">
+                        <div class="card-left">
+                            <span class="trash-indicator"></span>
+                            <div class="card-content">
+                                <h4 class="card-title">Fetch-food</h4>
+                            </div>
+                        </div>
+                        <button class="card-menu">⋮</button>
+                    </article>
+                    <article class="task-card trashed" data-id="11">
+                        <div class="card-left">
+                            <span class="trash-indicator"></span>
+                            <div class="card-content">
+                                <h4 class="card-title">Designing</h4>
+                                <p class="card-desc">Lorem ipsum dolor sit amet.</p>
+                            </div>
+                        </div>
+                        <button class="card-menu">⋮</button>
+                    </article>
+                </div>
+            </section>
+        </div>
+
+        <!-- フローティングアクションボタン（FAB） -->
+        <button class="fab" id="fabBtn" aria-label="タスクを追加">
+            <span class="fab-icon">+</span>
+        </button>
+    </main>
+
+    <!-- カードメニュー用スライドパネル -->
+    <div class="card-menu-overlay" id="cardMenuOverlay"></div>
+    <aside class="card-menu-panel" id="cardMenuPanel">
+        <div class="card-menu-header">
+            <h3 class="card-menu-title">タスクの操作</h3>
+            <button class="card-menu-close" id="cardMenuClose" aria-label="閉じる">×</button>
+        </div>
+        <div class="card-menu-body">
+            <div class="card-menu-preview">
+                <span class="card-menu-id" id="cardMenuId">#1</span>
+                <h4 class="card-menu-preview-title" id="cardMenuPreviewTitle"></h4>
+            </div>
+            <!-- 通常カード用（編集・ゴミ箱・削除） -->
+            <div class="card-menu-content card-menu-content-normal" id="cardMenuContentNormal">
+                <div class="card-menu-edit">
+                    <label for="cardMenuEditTitle">タイトル</label>
+                    <input type="text" id="cardMenuEditTitle" class="card-menu-input" placeholder="タスクのタイトル">
+                    <label for="cardMenuEditDesc">説明</label>
+                    <textarea id="cardMenuEditDesc" class="card-menu-textarea" placeholder="タスクの説明" rows="3"></textarea>
+                    <label class="card-menu-tags-label">タグ</label>
+                    <div class="card-menu-tags" id="cardMenuTags">
+                        <button type="button" class="card-menu-tag-btn tag-red" data-tag="urgent">urgent</button>
+                        <button type="button" class="card-menu-tag-btn tag-blue" data-tag="coding">coding</button>
+                        <button type="button" class="card-menu-tag-btn tag-orange" data-tag="personal">personal</button>
+                        <button type="button" class="card-menu-tag-btn tag-green" data-tag="health">health</button>
+                        <button type="button" class="card-menu-tag-btn tag-dark-green" data-tag="important">important</button>
+                    </div>
+                </div>
+                <div class="card-menu-actions">
+                    <button class="card-menu-btn card-menu-btn-primary" id="cardMenuSave">保存</button>
+                    <button class="card-menu-btn card-menu-btn-warning" id="cardMenuTrash">ゴミ箱へ移動</button>
+                    <button class="card-menu-btn card-menu-btn-danger" id="cardMenuDelete">削除</button>
+                </div>
+            </div>
+            <!-- Trashedカード用（Ongoingに戻す・削除） -->
+            <div class="card-menu-content card-menu-content-trashed" id="cardMenuContentTrashed" style="display: none;">
+                <p class="card-menu-trashed-desc">このタスクを復元するか、完全に削除しますか？</p>
+                <div class="card-menu-actions">
+                    <button class="card-menu-btn card-menu-btn-primary" id="cardMenuRestore">Ongoingに戻す</button>
+                    <button class="card-menu-btn card-menu-btn-danger" id="cardMenuDeleteTrashed">削除</button>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <script src="main.js"></script>
+</body>
+</html>
