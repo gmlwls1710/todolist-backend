@@ -1,0 +1,39 @@
+require('dotenv').config();
+const express = require('express');
+const mongoose = require('mongoose');
+const tasksRouter = require('./routes/tasks');
+
+const app = express();
+const PORT = process.env.PORT || 5001;
+
+// CORS（フロントエンドからの API 呼び出しを許可）
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') return res.sendStatus(200);
+  next();
+});
+
+// JSON ボディをパースするミドルウェア
+app.use(express.json());
+
+// MongoDB 接続（環境変数またはローカル）
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/todolist';
+
+mongoose
+  .connect(MONGODB_URI)
+  .then(() => {
+    console.log('MongoDB 連結成功');
+  })
+  .catch((err) => {
+    console.error('MongoDB 連結エラー:', err.message);
+  });
+
+// タスクルーター（POST /tasks で作成）
+app.use('/tasks', tasksRouter);
+
+// サーバー起動
+app.listen(PORT, () => {
+  console.log(`サーバーがポート ${PORT} で起動しました`);
+});

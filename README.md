@@ -12,7 +12,28 @@ ToDo管理アプリケーション（HTML, CSS, JavaScript）
 
 ## 起動方法
 
+### Node.js で起動（推奨）
+
+```bash
+npm start
+```
+
+または
+
+```bash
+npm run dev
+```
+
+ローカルサーバーが `http://localhost:3000` で起動します。Firebase を使用するため、サーバー経由でのアクセスを推奨します。
+
+### 直接開く場合
+
 `html-css-js-demo/index.html` をブラウザで開く
+
+## 必要環境
+
+- Node.js 18 以上
+- npm（Node.js に同梱）
 
 ## ファイル構成
 
@@ -22,5 +43,6 @@ vibe-coding/
 │   ├── index.html
 │   ├── style.css
 │   └── main.js
+├── package.json
 └── README.md
 ```
