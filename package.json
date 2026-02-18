@@ -4,7 +4,7 @@
   "description": "My Todos - タスク管理アプリ（Firebase Realtime Database）",
   "main": "html-css-js-demo/index.html",
   "scripts": {
-    "start": "npx live-server html-css-js-demo --port=3000 --open",
+    "start": "node index.js",
     "dev": "npx live-server html-css-js-demo --port=3000 --open"
   },
   "keywords": [
