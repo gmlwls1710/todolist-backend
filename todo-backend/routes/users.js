@@ -1,4 +1,5 @@
 const express = require('express');
+const bcrypt = require('bcryptjs');
 const User = require('../models/user');
 
 const router = express.Router();
@@ -36,7 +37,14 @@ router.post('/login', async (req, res) => {
       });
     }
     const user = await User.findOne({ email: emailNorm });
-    if (!user || user.password !== String(password)) {
+    if (!user) {
+      return res.status(401).json({
+        message: 'ログインに失敗しました',
+        error: 'passwordが一致しません',
+      });
+    }
+    const ok = await bcrypt.compare(String(password), user.password);
+    if (!ok) {
       return res.status(401).json({
         message: 'ログインに失敗しました',
         error: 'passwordが一致しません',
@@ -72,10 +80,12 @@ router.post('/', async (req, res) => {
   try {
     const { email, name, password, user_type } = req.body;
 
+    const hashedPassword = await bcrypt.hash(String(password), 10);
+
     const user = await User.create({
       email,
       name,
-      password,
+      password: hashedPassword,
       user_type,
     });
 
@@ -98,7 +108,10 @@ router.patch('/:id', async (req, res) => {
     const { id } = req.params;
     const { email, name, password, user_type } = req.body;
 
-    const update = { email, name, password, user_type };
+    const update = { email, name, user_type };
+    if (password !== undefined) {
+      update.password = await bcrypt.hash(String(password), 10);
+    }
     Object.keys(update).forEach((key) => {
       if (update[key] === undefined) delete update[key];
     });
