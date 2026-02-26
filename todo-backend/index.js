@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const tasksRouter = require('./routes/tasks');
+const usersRouter = require('./routes/users');
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -32,6 +33,7 @@ mongoose
 
 // タスクルーター（POST /tasks で作成）
 app.use('/tasks', tasksRouter);
+app.use('/users', usersRouter);
 
 // サーバー起動
 app.listen(PORT, () => {
