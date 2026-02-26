@@ -36,6 +36,16 @@ app.use('/tasks', tasksRouter);
 app.use('/users', usersRouter);
 
 // サーバー起動
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`サーバーがポート ${PORT} で起動しました`);
+});
+
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`\nポート ${PORT} は既に使用中です。`);
+    console.error(`別のプロセスを終了してから再起動してください。`);
+    console.error(`Windows: netstat -ano | findstr :${PORT} で PID を確認 → taskkill /PID <番号> /F\n`);
+    process.exit(1);
+  }
+  throw err;
 });

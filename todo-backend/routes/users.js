@@ -24,6 +24,33 @@ router.get('/', async (req, res) => {
   }
 });
 
+// ログイン（メール・パスワード照合）
+router.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const emailNorm = (email && String(email).trim().toLowerCase()) || '';
+    if (!emailNorm || password === undefined || password === null) {
+      return res.status(400).json({
+        message: 'メールアドレスとパスワードを入力してください',
+        error: 'passwordが一致しません',
+      });
+    }
+    const user = await User.findOne({ email: emailNorm });
+    if (!user || user.password !== String(password)) {
+      return res.status(401).json({
+        message: 'ログインに失敗しました',
+        error: 'passwordが一致しません',
+      });
+    }
+    res.json(toSafeUser(user));
+  } catch (err) {
+    res.status(500).json({
+      message: 'ログインに失敗しました',
+      error: err.message,
+    });
+  }
+});
+
 // ユーザー1件取得
 router.get('/:id', async (req, res) => {
   try {
@@ -54,9 +81,13 @@ router.post('/', async (req, res) => {
 
     res.status(201).json(toSafeUser(user));
   } catch (err) {
+    const isDuplicateEmail = err.code === 11000 || (err.message && err.message.includes('duplicate key'));
+    const message = isDuplicateEmail
+      ? 'emailが重複しています。もう一度確認してください'
+      : (err.message || 'ユーザー作成に失敗しました');
     res.status(400).json({
       message: 'ユーザー作成に失敗しました',
-      error: err.message,
+      error: message,
     });
   }
 });
