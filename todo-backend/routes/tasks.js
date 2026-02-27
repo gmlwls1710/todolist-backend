@@ -1,12 +1,38 @@
 const express = require('express');
+const jwt = require('jsonwebtoken');
 const Task = require('../models/task');
 
 const router = express.Router();
 
+const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
+
+function auth(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({
+      message: '認証が必要です',
+      error: 'トークンがありません',
+    });
+  }
+  const token = authHeader.slice(7);
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.userId = decoded.id;
+    next();
+  } catch (err) {
+    return res.status(401).json({
+      message: '認証に失敗しました',
+      error: 'トークンが無効または期限切れです',
+    });
+  }
+}
+
+router.use(auth);
+
 // タスク一覧取得（全タスク）
 router.get('/', async (req, res) => {
   try {
-    const tasks = await Task.find({ deletedAt: null }).sort({ createdAt: -1 });
+    const tasks = await Task.find({ user: req.userId, deletedAt: null }).sort({ createdAt: -1 });
     res.json(tasks);
   } catch (err) {
     res.status(500).json({
@@ -19,7 +45,7 @@ router.get('/', async (req, res) => {
 // ゴミ箱一覧取得（論理削除済みタスク）
 router.get('/trashed', async (req, res) => {
   try {
-    const tasks = await Task.find({ deletedAt: { $ne: null } }).sort({ deletedAt: -1 });
+    const tasks = await Task.find({ user: req.userId, deletedAt: { $ne: null } }).sort({ deletedAt: -1 });
     res.json(tasks);
   } catch (err) {
     res.status(500).json({
@@ -33,6 +59,7 @@ router.get('/trashed', async (req, res) => {
 router.get('/todo', async (req, res) => {
   try {
     const tasks = await Task.find({
+      user: req.userId,
       deletedAt: null,
       status: { $ne: 'DONE' },
     }).sort({ createdAt: 1 });
@@ -52,6 +79,7 @@ router.post('/', async (req, res) => {
     const { title, description, status, priority, dueDate } = req.body;
 
     const task = await Task.create({
+      user: req.userId,
       title,
       description,
       status,
@@ -88,7 +116,7 @@ router.patch('/:id', async (req, res) => {
     });
 
     const task = await Task.findOneAndUpdate(
-      { _id: id, deletedAt: null },
+      { _id: id, user: req.userId, deletedAt: null },
       { $set: update },
       { new: true }
     );
@@ -112,7 +140,7 @@ router.post('/:id/restore', async (req, res) => {
     const { id } = req.params;
 
     const task = await Task.findOneAndUpdate(
-      { _id: id, deletedAt: { $ne: null } },
+      { _id: id, user: req.userId, deletedAt: { $ne: null } },
       { $set: { deletedAt: null } },
       { new: true }
     );
@@ -136,7 +164,7 @@ router.delete('/:id', async (req, res) => {
     const { id } = req.params;
 
     const task = await Task.findOneAndUpdate(
-      { _id: id, deletedAt: null },
+      { _id: id, user: req.userId, deletedAt: null },
       { $set: { deletedAt: new Date() } },
       { new: true }
     );
@@ -159,7 +187,7 @@ router.delete('/:id/permanent', async (req, res) => {
   try {
     const { id } = req.params;
 
-    const task = await Task.findByIdAndDelete(id);
+    const task = await Task.findOneAndDelete({ _id: id, user: req.userId });
 
     if (!task) {
       return res.status(404).json({ message: 'タスクが見つかりませんでした' });
