@@ -1,8 +1,11 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
 const router = express.Router();
+
+const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
 
 // レスポンスから password を除外するヘルパー
 function toSafeUser(doc) {
@@ -50,10 +53,53 @@ router.post('/login', async (req, res) => {
         error: 'passwordが一致しません',
       });
     }
-    res.json(toSafeUser(user));
+    const payload = {
+      id: user._id,
+      email: user.email,
+      user_type: user.user_type,
+    };
+    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '1h' });
+
+    res.json({
+      user: toSafeUser(user),
+      token,
+    });
   } catch (err) {
     res.status(500).json({
       message: 'ログインに失敗しました',
+      error: err.message,
+    });
+  }
+});
+
+// トークンからログインユーザー情報を取得
+router.get('/me', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({
+        message: '認証が必要です',
+        error: 'トークンがありません',
+      });
+    }
+    const token = authHeader.slice(7);
+    let decoded;
+    try {
+      decoded = jwt.verify(token, JWT_SECRET);
+    } catch (e) {
+      return res.status(401).json({
+        message: '認証に失敗しました',
+        error: 'トークンが無効または期限切れです',
+      });
+    }
+    const user = await User.findById(decoded.id).select('-password');
+    if (!user) {
+      return res.status(404).json({ message: 'ユーザーが見つかりませんでした' });
+    }
+    res.json(toSafeUser(user));
+  } catch (err) {
+    res.status(500).json({
+      message: 'ユーザー情報の取得に失敗しました',
       error: err.message,
     });
   }
