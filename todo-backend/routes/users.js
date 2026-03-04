@@ -6,6 +6,9 @@ const User = require('../models/user');
 const router = express.Router();
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
+const SLACK_CLIENT_ID = process.env.SLACK_CLIENT_ID;
+const SLACK_CLIENT_SECRET = process.env.SLACK_CLIENT_SECRET;
+const SLACK_REDIRECT_URI = process.env.SLACK_REDIRECT_URI;
 
 // レスポンスから password を除外するヘルパー
 function toSafeUser(doc) {
@@ -100,6 +103,103 @@ router.get('/me', async (req, res) => {
   } catch (err) {
     res.status(500).json({
       message: 'ユーザー情報の取得に失敗しました',
+      error: err.message,
+    });
+  }
+});
+
+// Slack OAuth ログイン（code からユーザー作成/取得して JWT 発行）
+router.post('/slack-login', async (req, res) => {
+  try {
+    const { code } = req.body;
+    if (!code) {
+      return res.status(400).json({
+        message: 'Slack ログインに失敗しました',
+        error: 'code がありません',
+      });
+    }
+    if (!SLACK_CLIENT_ID || !SLACK_CLIENT_SECRET || !SLACK_REDIRECT_URI) {
+      return res.status(500).json({
+        message: 'Slack ログインに失敗しました',
+        error: 'Slack OAuth の設定が不足しています',
+      });
+    }
+
+    const tokenRes = await fetch('https://slack.com/api/oauth.v2.access', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        client_id: SLACK_CLIENT_ID,
+        client_secret: SLACK_CLIENT_SECRET,
+        code,
+        redirect_uri: SLACK_REDIRECT_URI,
+      }),
+    });
+    const tokenData = await tokenRes.json();
+    if (!tokenData.ok) {
+      return res.status(400).json({
+        message: 'Slack ログインに失敗しました',
+        error: tokenData.error || 'oauth.v2.access が失敗しました',
+      });
+    }
+
+    const userToken =
+      (tokenData.authed_user && tokenData.authed_user.access_token) || tokenData.access_token;
+    const userId = tokenData.authed_user && tokenData.authed_user.id;
+
+    if (!userToken || !userId) {
+      return res.status(400).json({
+        message: 'Slack ログインに失敗しました',
+        error: 'Slack ユーザー情報を取得できませんでした',
+      });
+    }
+
+    const infoRes = await fetch(
+      `https://slack.com/api/users.info?user=${encodeURIComponent(userId)}`,
+      {
+        headers: { Authorization: `Bearer ${userToken}` },
+      }
+    );
+    const infoData = await infoRes.json();
+    if (!infoData.ok || !infoData.user) {
+      return res.status(400).json({
+        message: 'Slack ログインに失敗しました',
+        error: infoData.error || 'users.info が失敗しました',
+      });
+    }
+
+    const profile = infoData.user.profile || {};
+    const email =
+      (profile.email && String(profile.email).toLowerCase()) ||
+      `${userId}@slack.local`;
+    const name = profile.real_name || profile.display_name || 'Slack User';
+
+    let user = await User.findOne({ email });
+    if (!user) {
+      const randomPassword = `slack:${userId}:${Date.now()}`;
+      const hashedPassword = await bcrypt.hash(String(randomPassword), 10);
+      user = await User.create({
+        email,
+        name,
+        password: hashedPassword,
+        user_type: 'customer',
+      });
+    }
+
+    const payload = {
+      id: user._id,
+      email: user.email,
+      user_type: user.user_type,
+    };
+    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '1h' });
+
+    res.json({
+      user: toSafeUser(user),
+      token,
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: 'Slack ログインに失敗しました',
       error: err.message,
     });
   }
