@@ -125,7 +125,8 @@ router.post('/slack-login', async (req, res) => {
       });
     }
 
-    const tokenRes = await fetch('https://slack.com/api/oauth.v2.access', {
+    // OpenID Connect のトークンエンドポイントで code をアクセストークンに交換
+    const tokenRes = await fetch('https://slack.com/api/openid.connect.token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
@@ -133,46 +134,41 @@ router.post('/slack-login', async (req, res) => {
         client_secret: SLACK_CLIENT_SECRET,
         code,
         redirect_uri: SLACK_REDIRECT_URI,
+        grant_type: 'authorization_code',
       }),
     });
     const tokenData = await tokenRes.json();
     if (!tokenData.ok) {
       return res.status(400).json({
         message: 'Slack ログインに失敗しました',
-        error: tokenData.error || 'oauth.v2.access が失敗しました',
+        error: tokenData.error || 'openid.connect.token が失敗しました',
       });
     }
 
-    const userToken =
-      (tokenData.authed_user && tokenData.authed_user.access_token) || tokenData.access_token;
-    const userId = tokenData.authed_user && tokenData.authed_user.id;
-
-    if (!userToken || !userId) {
+    const accessToken = tokenData.access_token;
+    if (!accessToken) {
       return res.status(400).json({
         message: 'Slack ログインに失敗しました',
-        error: 'Slack ユーザー情報を取得できませんでした',
+        error: 'Slack アクセストークンを取得できませんでした',
       });
     }
 
-    const infoRes = await fetch(
-      `https://slack.com/api/users.info?user=${encodeURIComponent(userId)}`,
-      {
-        headers: { Authorization: `Bearer ${userToken}` },
-      }
-    );
+    // OpenID Connect の userInfo エンドポイントでユーザー情報を取得
+    const infoRes = await fetch('https://slack.com/api/openid.connect.userInfo', {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
     const infoData = await infoRes.json();
-    if (!infoData.ok || !infoData.user) {
+    if (!infoData.ok) {
       return res.status(400).json({
         message: 'Slack ログインに失敗しました',
-        error: infoData.error || 'users.info が失敗しました',
+        error: infoData.error || 'openid.connect.userInfo が失敗しました',
       });
     }
 
-    const profile = infoData.user.profile || {};
     const email =
-      (profile.email && String(profile.email).toLowerCase()) ||
-      `${userId}@slack.local`;
-    const name = profile.real_name || profile.display_name || 'Slack User';
+      (infoData.email && String(infoData.email).toLowerCase()) ||
+      `${infoData.sub || 'slack-user'}@slack.local`;
+    const name = infoData.name || 'Slack User';
 
     let user = await User.findOne({ email });
     if (!user) {
